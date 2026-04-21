@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: learnbridge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: learnbridge
+  template:
+    metadata:
+      labels:
+        app: learnbridge
+    spec:
+      containers:
+      - name: learnbridge
+        image: learnbridge:v2
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000

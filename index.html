@@ -1,0 +1,441 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --blue:#2563EB;--blue-light:#EFF6FF;--blue-mid:#DBEAFE;--blue-dark:#1E40AF;
+    --gray-50:#F8FAFC;--gray-100:#F1F5F9;--gray-200:#E2E8F0;--gray-300:#CBD5E1;
+    --gray-400:#94A3B8;--gray-500:#64748B;--gray-700:#334155;--gray-900:#0F172A;
+    --green:#16A34A;--green-light:#F0FDF4;--red:#DC2626;--red-light:#FEF2F2;
+    --amber:#D97706;--amber-light:#FFFBEB;
+    --radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+    --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  }
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--gray-100);color:var(--gray-900);min-height:100vh}
+  .app{display:grid;grid-template-columns:320px 1fr;min-height:100vh}
+  .sidebar{background:#fff;border-right:1px solid var(--gray-200);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .sidebar-header{padding:24px 24px 20px;border-bottom:1px solid var(--gray-200)}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo-icon{width:32px;height:32px;background:var(--blue);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center}
+  .logo-icon svg{width:18px;height:18px;fill:#fff}
+  .logo-text{font-size:15px;font-weight:600;color:var(--gray-900)}
+  .logo-sub{font-size:11px;color:var(--gray-400);margin-top:1px}
+  .sidebar-body{padding:20px 24px;display:flex;flex-direction:column;gap:18px;flex:1}
+  .field-label{font-size:12px;font-weight:500;color:var(--gray-500);margin-bottom:6px;letter-spacing:.4px;text-transform:uppercase}
+  .upload-zone{border:1.5px dashed var(--gray-300);border-radius:var(--radius-md);padding:16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:var(--gray-50)}
+  .upload-zone:hover{border-color:var(--blue);background:var(--blue-light)}
+  .upload-zone.has-file{border-color:var(--green);border-style:solid;background:var(--green-light)}
+  .upload-zone input{display:none}
+  .upload-icon{width:28px;height:28px;margin:0 auto 6px;color:var(--gray-400)}
+  .upload-zone.has-file .upload-icon{color:var(--green)}
+  .upload-text{font-size:12px;color:var(--gray-500)}
+  .upload-zone.has-file .upload-text{color:var(--green);font-weight:500}
+  .upload-hint{font-size:11px;color:var(--gray-400);margin-top:3px}
+  textarea,input[type=text]{width:100%;border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:10px 12px;font-size:13px;font-family:inherit;color:var(--gray-900);background:#fff;resize:none;outline:none;transition:border-color .2s}
+  textarea:focus,input[type=text]:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+  .cta-btn{width:100%;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,transform .1s;margin-top:4px;letter-spacing:.2px}
+  .cta-btn:hover{background:var(--blue-dark)}
+  .cta-btn:active{transform:scale(.99)}
+  .cta-btn:disabled{background:var(--gray-300);cursor:not-allowed;transform:none}
+  .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .cta-btn.loading .spinner{display:block}
+  .cta-btn.loading .btn-text::before{content:"Analyzing..."}
+  .cta-btn:not(.loading) .btn-text::before{content:"Analyze Profile"}
+  .main{padding:28px 32px;display:flex;flex-direction:column;gap:24px;min-height:100vh}
+  .main-header{display:flex;align-items:center;justify-content:space-between}
+  .main-title{font-size:20px;font-weight:600;color:var(--gray-900)}
+  .main-sub{font-size:13px;color:var(--gray-400);margin-top:2px}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--gray-300);display:inline-block}
+  .status-dot.ready{background:var(--green)}
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;background:#fff;border-radius:var(--radius-xl);border:1px solid var(--gray-200)}
+  .empty-icon{width:56px;height:56px;background:var(--blue-mid);border-radius:var(--radius-lg);margin:0 auto 16px;display:flex;align-items:center;justify-content:center}
+  .empty-icon svg{width:28px;height:28px;stroke:var(--blue);fill:none}
+  .empty-title{font-size:16px;font-weight:600;color:var(--gray-700);margin-bottom:6px}
+  .empty-desc{font-size:13px;color:var(--gray-400);max-width:260px;line-height:1.6}
+  .results{display:flex;flex-direction:column;gap:20px;animation:fadeUp .4s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .score-card{background:#fff;border-radius:var(--radius-xl);border:1px solid var(--gray-200);padding:28px 32px;display:flex;align-items:center;gap:40px}
+  .score-circle-wrap{position:relative;flex-shrink:0}
+  .score-circle{width:120px;height:120px}
+  .score-circle-bg{fill:none;stroke:var(--gray-100);stroke-width:10}
+  .score-circle-fg{fill:none;stroke:var(--blue);stroke-width:10;stroke-linecap:round;stroke-dasharray:345;stroke-dashoffset:345;transition:stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1);transform:rotate(-90deg);transform-origin:50% 50%}
+  .score-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .score-num{font-size:26px;font-weight:600;color:var(--gray-900);line-height:1}
+  .score-pct{font-size:12px;color:var(--gray-400);margin-top:2px}
+  .score-info{flex:1}
+  .score-title{font-size:22px;font-weight:600;color:var(--gray-900);margin-bottom:6px}
+  .score-desc{font-size:13px;color:var(--gray-500);margin-bottom:16px;line-height:1.6}
+  .progress-bar-wrap{background:var(--gray-100);border-radius:100px;height:8px;overflow:hidden;max-width:360px}
+  .progress-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,#3B82F6,#2563EB);transition:width 1.4s cubic-bezier(.4,0,.2,1);width:0}
+  .score-badges{display:flex;gap:8px;margin-top:14px}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:500}
+  .badge-blue{background:var(--blue-mid);color:var(--blue-dark)}
+  .badge-green{background:var(--green-light);color:var(--green)}
+  .badge-amber{background:var(--amber-light);color:var(--amber)}
+  .badge-red{background:var(--red-light);color:var(--red)}
+  .cards-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .card{background:#fff;border-radius:var(--radius-xl);border:1px solid var(--gray-200);padding:22px 24px}
+  .card-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .card-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .card-icon.blue{background:var(--blue-mid)}
+  .card-icon.amber{background:var(--amber-light)}
+  .card-icon.green{background:var(--green-light)}
+  .card-icon svg{width:16px;height:16px}
+  .card-title{font-size:14px;font-weight:600;color:var(--gray-900)}
+  .card-subtitle{font-size:11px;color:var(--gray-400);margin-top:1px}
+  .pills-wrap{display:flex;flex-wrap:wrap;gap:7px}
+  .pill{padding:5px 11px;border-radius:100px;font-size:12px;font-weight:500;background:var(--red-light);color:var(--red);border:1px solid rgba(220,38,38,.15)}
+  .ready-msg{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--green);font-weight:500;padding:10px 14px;background:var(--green-light);border-radius:var(--radius-md)}
+  .step-list{display:flex;flex-direction:column;gap:10px}
+  .step-item{display:flex;align-items:flex-start;gap:10px}
+  .step-num{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .step-text{font-size:13px;color:var(--gray-700);line-height:1.5}
+  .step-connector{width:1px;height:10px;background:var(--gray-200);margin-left:11px}
+  .courses-section{background:#fff;border-radius:var(--radius-xl);border:1px solid var(--gray-200);padding:22px 24px}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .section-title{font-size:15px;font-weight:600;color:var(--gray-900)}
+  .section-count{font-size:12px;color:var(--gray-400);background:var(--gray-100);padding:3px 9px;border-radius:100px}
+  .courses-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .course-card{border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px;transition:border-color .2s,box-shadow .2s;cursor:pointer}
+  .course-card:hover{border-color:var(--blue);box-shadow:0 4px 16px rgba(37,99,235,.08)}
+  .course-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:8px}
+  .course-title{font-size:13px;font-weight:600;color:var(--gray-900);line-height:1.4}
+  .course-meta{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+  .meta-badge{font-size:10px;font-weight:500;padding:3px 8px;border-radius:100px}
+  .meta-platform{background:var(--blue-mid);color:var(--blue-dark)}
+  .meta-level{background:var(--gray-100);color:var(--gray-500)}
+  .course-skills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+  .skill-tag{font-size:10px;padding:2px 8px;border-radius:100px;background:var(--gray-100);color:var(--gray-500);font-weight:500}
+  .course-reason{font-size:11px;color:var(--gray-400);line-height:1.5;border-top:1px solid var(--gray-100);padding-top:8px;margin-top:2px}
+  .error-banner{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--red-light);border:1px solid rgba(220,38,38,.2);border-radius:var(--radius-lg);font-size:13px;color:var(--red)}
+  .error-banner svg{width:18px;height:18px;stroke:var(--red);fill:none;flex-shrink:0}
+  .error-banner strong{font-weight:600}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .divider-label{font-size:11px;color:var(--gray-400);font-weight:500;text-transform:uppercase;letter-spacing:.5px;padding-bottom:4px}
+  @media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{position:static;height:auto}.cards-row,.courses-grid{grid-template-columns:1fr}}
+</style>
+
+<h2 class="sr-only">LearnBridge AI Career Assistant — 2-column dashboard with resume upload, job description input, and AI-powered career analysis results</h2>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div>
+          <div class="logo-text">LearnBridge</div>
+          <div class="logo-sub">AI Career Assistant</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-body">
+      <div>
+        <div class="field-label">Resume</div>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('resumeFile').click()">
+          <input type="file" id="resumeFile" accept=".txt" onchange="handleFileUpload(this)">
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px">
+              <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <div class="upload-text" id="uploadText">Click to upload resume</div>
+          <div class="upload-hint" id="uploadHint">.txt files only</div>
+        </div>
+        <div style="margin-top:8px">
+          <div class="divider-label">or paste resume text</div>
+          <textarea id="resumeText" rows="4" placeholder="Paste your resume content here..."></textarea>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Job Description</div>
+        <textarea id="jobDesc" rows="5" placeholder="Paste the job description you're targeting..."></textarea>
+      </div>
+      <div>
+        <div class="field-label">Career Goal</div>
+        <input type="text" id="careerGoal" placeholder="e.g. Become a Data Scientist at FAANG">
+      </div>
+      <button class="cta-btn" id="analyzeBtn" onclick="analyze()">
+        <div class="spinner" id="spinner"></div>
+        <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <span class="btn-text"></span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <div>
+        <div class="main-title">Career Dashboard</div>
+        <div class="main-sub">AI-powered insights based on your profile</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-400)">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Awaiting analysis</span>
+      </div>
+    </div>
+
+    <div id="emptyState" class="empty-state">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" stroke-width="1.5">
+          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          <circle cx="18" cy="18" r="5" fill="var(--blue)" stroke="none"/>
+          <path d="M18 16v2l1 1" stroke="#fff" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="empty-title">Upload your resume to see insights</div>
+      <div class="empty-desc">Fill in your resume, job description, and career goal — then click Analyze Profile to get started.</div>
+    </div>
+
+    <div id="errorBanner" style="display:none" class="error-banner">
+      <svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div><strong>Cannot connect to backend.</strong> Please start the server at <code>http://127.0.0.1:8000</code> and try again.</div>
+    </div>
+
+    <div id="results" class="results" style="display:none">
+      <div class="score-card">
+        <div class="score-circle-wrap">
+          <svg class="score-circle" viewBox="0 0 120 120">
+            <circle class="score-circle-bg" cx="60" cy="60" r="55"/>
+            <circle class="score-circle-fg" id="scoreRing" cx="60" cy="60" r="55"/>
+          </svg>
+          <div class="score-label">
+            <span class="score-num" id="scoreNum">0</span>
+            <span class="score-pct">/ 100</span>
+          </div>
+        </div>
+        <div class="score-info">
+          <div class="score-title">Profile Match</div>
+          <div class="score-desc" id="scoreDesc">Your resume is being evaluated against the job requirements.</div>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+          <div class="score-badges" id="scoreBadges"></div>
+        </div>
+      </div>
+
+      <div class="cards-row">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Missing Skills</div>
+              <div class="card-subtitle">Skills to develop</div>
+            </div>
+          </div>
+          <div id="missingSkills"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            </div>
+            <div>
+              <div class="card-title">Learning Path</div>
+              <div class="card-subtitle">Your roadmap</div>
+            </div>
+          </div>
+          <div class="step-list" id="learningPath"></div>
+        </div>
+      </div>
+
+      <div class="courses-section">
+        <div class="section-header">
+          <div class="section-title">Recommended Courses</div>
+          <span class="section-count" id="courseCount">0 courses</span>
+        </div>
+        <div class="courses-grid" id="coursesGrid"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let resumeContent = '';
+const API_URL = '/analyze';
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function normalizeList(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map(v => String(v || '').trim()).filter(Boolean);
+}
+
+function setStatus(text, isReady = false) {
+  const dot = document.getElementById('statusDot');
+  const status = document.getElementById('statusText');
+  status.textContent = text;
+  dot.classList.toggle('ready', isReady);
+}
+
+function showError(message) {
+  const banner = document.getElementById('errorBanner');
+  banner.querySelector('div').innerHTML = `<strong>Analysis failed.</strong> ${escapeHtml(message)}`;
+  banner.style.display = 'flex';
+}
+
+function handleFileUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    resumeContent = e.target.result;
+    document.getElementById('resumeText').value = resumeContent;
+    const zone = document.getElementById('uploadZone');
+    zone.classList.add('has-file');
+    document.getElementById('uploadText').textContent = file.name;
+    document.getElementById('uploadHint').textContent = (file.size / 1024).toFixed(1) + ' KB · Click to change';
+  };
+  reader.readAsText(file);
+}
+
+async function analyze() {
+  const resume = document.getElementById('resumeText').value.trim();
+  const job = document.getElementById('jobDesc').value.trim();
+  const goal = document.getElementById('careerGoal').value.trim();
+
+  if (!resume || !job) {
+    showError('Please provide both resume text and a job description.');
+    document.getElementById('emptyState').style.display = 'flex';
+    return;
+  }
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.querySelector('.btn-icon').style.display = 'none';
+  document.getElementById('errorBanner').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'none';
+  setStatus('Analyzing profile...', false);
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({resume_text: resume, job_description: job, goal: goal})
+    });
+
+    if (!res.ok) {
+      let detail = `Server returned ${res.status}.`;
+
+      const text = await res.text(); // ONLY ONE READ
+
+      try {
+        const payload = JSON.parse(text);
+        detail = payload.detail || payload.message || detail;
+      } catch (_) {
+        if (text) detail = text;
+      }
+
+      throw new Error(detail);
+    }
+    const data = await res.json();
+    renderResults(data);
+  } catch (e) {
+    const rawMessage = String(e?.message || '').toLowerCase();
+    if (rawMessage.includes('failed to fetch') || rawMessage.includes('network')) {
+      showError('Cannot connect to backend. Start the API at http://127.0.0.1:8000 and try again.');
+    } else {
+      showError(e?.message || 'Unexpected error occurred while analyzing your profile.');
+    }
+    document.getElementById('emptyState').style.display = 'flex';
+    setStatus('Awaiting analysis', false);
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.querySelector('.btn-icon').style.display = '';
+  }
+}
+
+function renderResults(data) {
+  const score = Math.min(100, Math.max(0, parseInt(data.match_score) || 0));
+  
+  document.getElementById('results').style.display = 'flex';
+  document.getElementById('emptyState').style.display = 'none';
+
+  setStatus('Analysis complete', true);
+
+  setTimeout(() => {
+    const circumference = 2 * Math.PI * 55;
+    const offset = circumference - (score / 100) * circumference;
+    document.getElementById('scoreRing').style.strokeDashoffset = offset;
+    document.getElementById('progressBar').style.width = score + '%';
+    
+    let current = 0;
+    const el = document.getElementById('scoreNum');
+    const interval = setInterval(() => {
+      current = Math.min(score, current + Math.ceil(score / 40));
+      el.textContent = current;
+      if (current >= score) clearInterval(interval);
+    }, 35);
+
+    const ring = document.getElementById('scoreRing');
+    if (score >= 75) ring.style.stroke = '#16A34A';
+    else if (score >= 50) ring.style.stroke = '#D97706';
+    else ring.style.stroke = '#DC2626';
+  }, 100);
+
+  const desc = document.getElementById('scoreDesc');
+  const badges = document.getElementById('scoreBadges');
+  if (score >= 75) {
+    desc.textContent = 'Strong match! Your profile aligns well with the job requirements.';
+    badges.innerHTML = '<span class="badge badge-green">Strong Match</span><span class="badge badge-blue">Apply Now</span>';
+  } else if (score >= 50) {
+    desc.textContent = 'Moderate match. A few skill gaps to address before applying.';
+    badges.innerHTML = '<span class="badge badge-amber">Moderate Match</span><span class="badge badge-blue">Skill Up</span>';
+  } else {
+    desc.textContent = 'Room for improvement. Follow the learning path to boost your score.';
+    badges.innerHTML = '<span class="badge badge-red">Needs Work</span><span class="badge badge-amber">Start Learning</span>';
+  }
+
+  const skillsEl = document.getElementById('missingSkills');
+  const skills = normalizeList(data.missing_skills);
+  if (skills.length === 0) {
+    skillsEl.innerHTML = '<div class="ready-msg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>You are job-ready 🎉</div>';
+  } else {
+    skillsEl.innerHTML = '<div class="pills-wrap">' + skills.map(s => `<span class="pill">${escapeHtml(s)}</span>`).join('') + '</div>';
+  }
+
+  const pathEl = document.getElementById('learningPath');
+  const steps = normalizeList(data.learning_path).length ? normalizeList(data.learning_path).slice(0, 5) : skills.slice(0, 5).map(skill => `Master ${skill}`);
+  if (steps.length === 0) {
+    pathEl.innerHTML = '<div style="font-size:13px;color:var(--gray-400)">No steps required — you\'re ready!</div>';
+  } else {
+    pathEl.innerHTML = steps.map((step, i) => {
+      const connector = i < steps.length - 1 ? '<div class="step-connector"></div>' : '';
+      return `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-text">${escapeHtml(step)}</div></div>${connector}`;
+    }).join('');
+  }
+
+  const courses = data.recommended_courses || [];
+  document.getElementById('courseCount').textContent = courses.length + ' course' + (courses.length !== 1 ? 's' : '');
+  const grid = document.getElementById('coursesGrid');
+  grid.innerHTML = courses.map(c => {
+    const skillTags = normalizeList(c.matched_skills || c.skills).slice(0, 3).map(s => `<span class="skill-tag">${escapeHtml(s)}</span>`).join('');
+    const reason = String(c.reason || '').trim() || 'Relevant course to close your profile gap.';
+    return `<div class="course-card">
+      <div class="course-top">
+        <div class="course-title">${escapeHtml(c.title || 'Untitled Course')}</div>
+      </div>
+      <div class="course-meta">
+        <span class="meta-badge meta-platform">${escapeHtml(c.platform || 'Online')}</span>
+        <span class="meta-badge meta-level">${escapeHtml(c.level || 'All Levels')}</span>
+      </div>
+      ${skillTags ? '<div class="course-skills">' + skillTags + '</div>' : ''}
+      <div class="course-reason">${escapeHtml(reason)}</div>
+    </div>`;
+  }).join('');
+}
+</script>
